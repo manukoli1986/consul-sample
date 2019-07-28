@@ -1,0 +1,70 @@
+global:
+  scrape_interval:     5s
+  evaluation_interval: 5s
+
+  external_labels:
+      monitor: 'prometheus-grafana-exporter'
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - alertmanager:9093
+
+rule_files:
+  - "alert.rules"
+
+scrape_configs:
+  - job_name: 'prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['localhost:9090']
+
+#  - job_name: 'microservice'
+#    scheme: http
+#    consul_sd_configs:
+#      - server: 'localhost:8500'
+#        datacenter: 'test1'
+#        refresh_interval: 5s
+#        services: []
+#
+#    relabel_configs:
+#      - source_labels: [__meta_consul_tags]
+#        regex: (.*)
+#        action: keep
+#      - source_labels: [__meta_consul_service]
+#        regex:         '(.*)'
+#        target_label:  'job'
+#        replacement:   '$1'
+#      - source_labels: [__meta_consul_service_address]
+#        regex:         '(.*)'
+#        target_label:  'Address'
+#        replacement:   '$1'
+#      - source_labels: [__meta_consul_node]
+#        regex:         '(.*)'
+#        replacement:   '$1'
+#        target_label: 'node'
+
+#      - source_labels: [__meta_consul_tags]
+#        regex: '.*,host=([^,]+),.*'
+#        replacement: '${1}'
+#        target_label: 'host'
+#      - source_labels: [__meta_consul_tags]
+#        regex: '.*,role=([^,]+),.*'
+#        replacement: '${1}'
+#        target_label: 'role'
+
+  - job_name: 'self'
+    metrics_path: '/actuator/prometheus'
+    consul_sd_configs:
+      - server: '192.168.0.104:8500'
+        datacenter: 'test1'
+    relabel_configs:
+      - source_labels: ['__meta_consul_address']
+#      - source_labels: ['__meta_consul_service']
+        separator: ':'
+        target_label: '__address__'
+        replacement: '${1}:9098'
+        action: 'replace'
+#        regex: '(.*)'
+#        target_label:  'job'
+#        replacement:   '$1'
